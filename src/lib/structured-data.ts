@@ -85,13 +85,40 @@ export function getBreadcrumbSchema(
   }
 }
 
+// Helper to format date strings to ISO 8601 (YYYY-MM-DD)
+function formatToIsoDate(dateStr: string): string {
+  if (!dateStr) return ''
+  const trimmed = dateStr.trim()
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return trimmed
+  }
+  try {
+    const d = new Date(trimmed)
+    if (!isNaN(d.getTime())) {
+      const year = d.getFullYear()
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    }
+  } catch {
+    // fallback
+  }
+  return trimmed
+}
+
 // Event Schema for events page
 export function getEventSchema(event: Event): WithContext<SchemaEvent> {
+  const startDateIso = formatToIsoDate(event.date)
+  const endDateIso = event.endDate ? formatToIsoDate(event.endDate) : startDateIso
+
   return {
     '@context': 'https://schema.org',
     '@type': 'Event',
     name: event.title,
-    startDate: event.date,
+    startDate: startDateIso,
+    endDate: endDateIso,
+    eventStatus: 'https://schema.org/EventScheduled',
+    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
     location: {
       '@type': 'Place',
       name: event.location,
@@ -107,9 +134,22 @@ export function getEventSchema(event: Event): WithContext<SchemaEvent> {
       '@type': 'Organization',
       name: siteConfig.name,
       url: siteConfig.url
+    },
+    performer: {
+      '@type': 'Organization',
+      name: event.performer || siteConfig.name,
+      url: siteConfig.url
+    },
+    offers: {
+      '@type': 'Offer',
+      price: event.price !== undefined ? String(event.price) : '0',
+      priceCurrency: event.currency || 'PKR',
+      availability: 'https://schema.org/InStock',
+      url: `${siteConfig.url}/events`
     }
   }
 }
+
 
 // Product Schema with optional AggregateRating
 export function getProductSchema(

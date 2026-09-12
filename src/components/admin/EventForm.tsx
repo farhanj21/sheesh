@@ -15,6 +15,7 @@ export function EventForm({ event, onSave, onCancel }: EventFormProps) {
     id: '',
     title: '',
     date: '',
+    endDate: '',
     location: '',
     description: '',
     image: '',
@@ -36,9 +37,19 @@ export function EventForm({ event, onSave, onCancel }: EventFormProps) {
           dateForPicker = dateObj.toISOString().split('T')[0]
         }
       }
+
+      let endDateForPicker = event.endDate || ''
+      if (event.endDate && !event.endDate.includes('-')) {
+        const dateObj = new Date(event.endDate)
+        if (!isNaN(dateObj.getTime())) {
+          endDateForPicker = dateObj.toISOString().split('T')[0]
+        }
+      }
+
       setFormData({
         ...event,
-        date: dateForPicker
+        date: dateForPicker,
+        endDate: endDateForPicker
       })
     }
   }, [event])
@@ -59,10 +70,21 @@ export function EventForm({ event, onSave, onCancel }: EventFormProps) {
       })
     }
 
+    let formattedEndDate = formData.endDate
+    if (formData.endDate && formData.endDate.includes('-')) {
+      const dateObj = new Date(formData.endDate + 'T00:00:00')
+      formattedEndDate = dateObj.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    }
+
     onSave({
       ...formData,
       id,
       date: formattedDate,
+      endDate: formattedEndDate || undefined,
     })
   }
 
@@ -210,7 +232,7 @@ export function EventForm({ event, onSave, onCancel }: EventFormProps) {
 
           <div>
             <label className="block text-sm font-semibold text-black mb-2">
-              Date <span className="text-red-400">*</span>
+              Start Date <span className="text-red-400">*</span>
             </label>
             <input
               type="date"
@@ -218,7 +240,20 @@ export function EventForm({ event, onSave, onCancel }: EventFormProps) {
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
               className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-black focus:outline-none focus:border-gray-400 [color-scheme:light]"
-              placeholder="Enter date here"
+              placeholder="Enter start date here"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-black mb-2">
+              End Date <span className="text-gray-500 font-normal text-xs">(Optional, for multi-day events)</span>
+            </label>
+            <input
+              type="date"
+              value={formData.endDate || ''}
+              onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+              className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-black focus:outline-none focus:border-gray-400 [color-scheme:light]"
+              placeholder="Enter end date here"
             />
           </div>
 

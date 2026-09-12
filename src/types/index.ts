@@ -35,11 +35,17 @@ export interface Event {
   id: string
   title: string
   date: string
+  endDate?: string
   location: string
   description: string
   image: string
   gallery: string[]
   createdAt: string
+  price?: number | string
+  currency?: string
+  performer?: string
+  eventStatus?: string
+  eventAttendanceMode?: string
 }
 
 export interface ReviewImage {
